@@ -1,23 +1,12 @@
 // tests/freeze.spec.js
-// GitHub Secrets 配置：
-//   DISCORD_ACCOUNT  格式: email,password
-//   GOST_PROXY       格式: socks5://host:port（可选）
-//   TG_BOT           格式: chat_id,bot_token
-
 const { test, expect, chromium } = require('@playwright/test');
 const https = require('https');
 
-// ================================================================
-// ⚙️ 配置解析
-// ================================================================
 const [DISCORD_EMAIL, DISCORD_PASSWORD] = (process.env.DISCORD_ACCOUNT || ',').split(',');
 const [TG_CHAT_ID, TG_TOKEN] = (process.env.TG_BOT || ',').split(',');
 
 const TIMEOUT = 30000;
 
-// ================================================================
-// 🕐 工具函数
-// ================================================================
 function nowStr() {
     return new Date().toLocaleString('zh-CN', {
         timeZone: 'Asia/Shanghai',
@@ -27,9 +16,6 @@ function nowStr() {
     }).replace(/\//g, '-');
 }
 
-// ================================================================
-// 📨 TG 推送
-// ================================================================
 function sendTG(result) {
     return new Promise((resolve) => {
         if (!TG_CHAT_ID || !TG_TOKEN) {
@@ -75,9 +61,6 @@ function sendTG(result) {
     });
 }
 
-// ================================================================
-// 🔐 OAuth 授权页处理
-// ================================================================
 async function handleOAuthPage(page) {
     for (let i = 0; i < 5; i++) {
         let btn;
@@ -85,7 +68,10 @@ async function handleOAuthPage(page) {
             btn = await page.waitForSelector('button.primary_a22cb0', { timeout: 8000 });
         } catch {
             try { btn = await page.locator('button:has-text("授权")').first().elementHandle(); }
-            catch { break; }
+            catch {
+                try { btn = await page.locator('button:has-text("Authorize")').first().elementHandle(); }
+                catch { break; }
+            }
         }
         if (!btn) break;
 
@@ -120,9 +106,6 @@ async function handleOAuthPage(page) {
     }
 }
 
-// ================================================================
-// 主测试
-// ================================================================
 test('FreezeHost 自动续期', async () => {
     if (!DISCORD_EMAIL || !DISCORD_PASSWORD) {
         throw new Error('❌ 缺少 DISCORD_ACCOUNT，格式: email,password');
@@ -158,7 +141,6 @@ test('FreezeHost 自动续期', async () => {
     console.log('🚀 浏览器就绪！');
 
     try {
-
         // ── 出口 IP 验证 ──────────────────────────────────────
         console.log('🌐 验证出口 IP...');
         try {
@@ -219,7 +201,7 @@ test('FreezeHost 自动续期', async () => {
 
         // ── 续期 ──────────────────────────────────────────────
         console.log('🔍 查找 Manage 按钮...');
-        const manageBtn = page.locator('a.bg-blue-600.text-white:has-text("Manage")').first();
+        const manageBtn = page.locator('a[href*="/server-console"]').first();
         await manageBtn.waitFor({ state: 'visible' });
         await manageBtn.scrollIntoViewIfNeeded();
         await manageBtn.click();
@@ -230,7 +212,7 @@ test('FreezeHost 自动续期', async () => {
         console.log(`📄 Server Console: ${page.url()}`);
 
         console.log('🔍 查找 RENEW 按钮...');
-        const renewBtn = page.locator('a#renew-link:has-text("RENEW")');
+        const renewBtn = page.locator('a#renew-link').first();
         await renewBtn.waitFor({ state: 'visible' });
         await renewBtn.click();
         console.log('📤 已点击 RENEW，等待结果...');
