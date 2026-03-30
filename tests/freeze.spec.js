@@ -423,11 +423,11 @@ test('FreezeHost 自动续期', async ({}, testInfo) => {
                             timeDisplay = `${d}天 ${h}小时 ${m}分钟`;
                             console.log(`  ⏳ 精确时效计算：${timeDisplay}`);
                             
-                            if (remainingDaysVal > 7) {
-                                console.log(`  🛡️ 剩余 > 7 天，无需续期`);
+                            if (remainingDaysVal > 4) {
+                                console.log(`  🛡️ 剩余时间 (${timeDisplay}) > 4 天，无需续期`);
                                 shouldRenew = false;
                             } else {
-                                console.log(`  ✅ 剩余 <= 7 天，符合条件，准备点击...`);
+                                console.log(`  ✅ 剩余 <= 4 天，符合条件，准备点击...`);
                             }
                         }
                     }
